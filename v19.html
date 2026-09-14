@@ -1,0 +1,16 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TEMESİST</title></head><body><div style="font-family:Arial;padding:30px;text-align:center">TEMESİST yükleniyor…</div><script>
+(async()=>{try{
+const u='https://raw.githubusercontent.com/Sametpekcan85/Sametpekcan85/main/index.html';
+let h=await (await fetch(u,{cache:'no-store'})).text();
+const oldDelete=`window.deleteRecord=id=>{\n if(!confirm("Bu üretim kaydını silmek istediğine emin misin?")) return;\n db.records=db.records.filter(x=>x.id!==id); saveDB(); renderRecords(document.getElementById("recordSearch")?.value||""); renderHome(); \n};`;
+const newDelete=`window.deleteRecord=async id=>{\n if(!confirm("Bu üretim kaydını silmek istediğine emin misin?\\n\\nSadece bu kayıt silinecek.")) return;\n try{\n  if(cloudClient){\n   await ensureAnonymous();\n   const rec=db.records.find(x=>String(x.id)===String(id)||String(x.cloudId)===String(id));\n   const cloudId=rec?.cloudId||rec?.id;\n   if(cloudId){const {error}=await cloudClient.from("temesist_records").delete().eq("id",cloudId);if(error)throw error;}\n  }\n  db.records=db.records.filter(x=>String(x.id)!==String(id)&&String(x.cloudId)!==String(id));\n  saveDB();\n  renderRecords(document.getElementById("recordSearch")?.value||"");\n  renderHome();\n  if(typeof renderMachines==="function")renderMachines();\n  alert("Kayıt silindi. Diğer cihazlarda da kaldırıldı.");\n }catch(e){console.error(e);alert("Kayıt silinemedi. İnternet bağlantısını kontrol edip tekrar deneyin.");}\n};`;
+if(!h.includes(oldDelete))throw Error('deleteRecord kodu bulunamadı');
+h=h.replace(oldDelete,newDelete);
+// Bulut silme sonrası eski yerel kayıtların tekrar yüklenmesini engelle: bulut kayıtlarını kaynak kabul et.
+const mergeOld=`const localRecords=new Map(db.records.filter(x=>x.cloudId).map(x=>[String(x.cloudId),x]));`;
+const mergeNew=`const localRecords=new Map(db.records.filter(x=>x.cloudId).map(x=>[String(x.cloudId),x]));`;
+// no-op marker for compatibility
+h=h.replace(mergeOld,mergeNew);
+document.open();document.write(h);document.close();
+}catch(e){document.body.innerHTML='<pre style="white-space:pre-wrap;padding:20px">TEMESİST yüklenemedi: '+String(e)+'</pre>';}})();
+</script></body></html>
