@@ -1,0 +1,21 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TEMESİST V13</title><style>html,body,iframe{margin:0;width:100%;height:100%;border:0}body{overflow:hidden}</style></head><body><iframe id="app" src="https://rawcdn.githack.com/Sametpekcan85/Sametpekcan85/319ebb64fee1a3c2c62c230a3457113c8fcb62cf/index.html"></iframe><script>
+const f=document.getElementById('app');
+f.addEventListener('load',()=>{
+ const w=f.contentWindow,d=w.document,b=d.getElementById('wipe');
+ if(!b)return;
+ b.onclick=async()=>{
+  if(!w.confirm('TÜM üretim kayıtları tüm cihazlardan silinecek. Emin misin?'))return;
+  try{
+   const client=w.eval('cloudClient');
+   if(client){
+    await w.eval('ensureAnonymous()');
+    const {error}=await client.from('temesist_records').delete().neq('id','00000000-0000-0000-0000-000000000000');
+    if(error)throw error;
+   }
+   w.localStorage.removeItem('temesistDB');
+   w.eval('db={records:[],products:defaultProducts,orders:[]}; saveLocal(); setupForm(); renderHome();');
+   w.alert('Tüm üretim kayıtları buluttan ve bu cihazdan silindi. Sayfayı yenileseniz de geri gelmeyecek.');
+  }catch(e){console.error(e);w.alert('Silme işlemi başarısız oldu. İnternet bağlantısını kontrol edip tekrar deneyin.');}
+ };
+});
+</script></body></html>
