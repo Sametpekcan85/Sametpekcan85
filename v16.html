@@ -1,0 +1,18 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TEMESİST</title></head><body><div style="font-family:Arial;padding:30px;text-align:center">TEMESİST yükleniyor…</div><script>
+(async()=>{
+try{
+ const u='https://raw.githubusercontent.com/Sametpekcan85/Sametpekcan85/main/index.html';
+ let h=await (await fetch(u,{cache:'no-store'})).text();
+ const wipeOld='document.getElementById("wipe").onclick=async()=>{if(!confirm("TÜM üretim kayıtları tüm cihazlardan silinecek. Emin misin?"))return;try{if(cloudClient){await ensureAnonymous();const {error}=await cloudClient.from("temesist_records").delete().neq("id","00000000-0000-0000-0000-000000000000");if(error)throw error;}db={records:[],products:defaultProducts,orders:[]};saveDB();setupForm();renderHome();alert("Tüm üretim kayıtları buluttan ve bu cihazdan silindi. Artık sayfa yenilense bile geri gelmeyecek.")}catch(e){console.error(e);alert("Kayıtlar silinemedi. İnternet bağlantısını kontrol edip tekrar deneyin.")}};';
+ const wipeNew='document.getElementById("wipe").onclick=async()=>{if(!confirm("TÜM üretim kayıtları tüm cihazlardan silinecek. Emin misin?"))return;try{if(!cloudClient)throw new Error("Bulut modülü yok");await ensureAnonymous();const del=await cloudClient.from("temesist_records").delete().neq("id","00000000-0000-0000-0000-000000000000");if(del.error)throw del.error;const check=await cloudClient.from("temesist_records").select("id").limit(1);if(check.error)throw check.error;if((check.data||[]).length)throw new Error("Bulut kayıtları tamamen silinemedi");db={records:[],products:defaultProducts,orders:[]};_localSaveDB();setupForm();renderHome();alert("Tüm üretim kayıtları buluttan ve bu cihazdan silindi. Diğer cihazlarda da sayfa yenilendiğinde silinmiş olacak.")}catch(e){console.error("TEMESİST silme hatası:",e);alert("Kayıtlar buluttan silinemedi. İnternet bağlantısını kontrol edip tekrar deneyin.")}};';
+ if(h.includes(wipeOld)) h=h.replace(wipeOld,wipeNew);
+ const mergeOld='const merge=(local,cloud,map)=>{const seen=new Set();const out=[];for(const x of cloud){seen.add(String(x.cloudId));out.push(x);}for(const x of local){if(!seen.has(String(x.cloudId)))out.push(x);}return out;};\n  db.records=merge(db.records,cloudRecords,localRecords);\n  db.products=merge(db.products,cloudProducts,localProducts);\n  db.orders=merge(db.orders,cloudOrders,localOrders);';
+ const mergeNew='const mergeCloudAuthoritative=(local,cloud)=>{const pending=local.filter(x=>!x.cloudId);return [...cloud,...pending];};\n  db.records=mergeCloudAuthoritative(db.records,cloudRecords);\n  db.products=mergeCloudAuthoritative(db.products,cloudProducts);\n  db.orders=mergeCloudAuthoritative(db.orders,cloudOrders);';
+ if(h.includes(mergeOld)) h=h.replace(mergeOld,mergeNew);
+ const connOld='async function connectAndSync(showAlert=false){\n  try{\n    setCloudStatus(false,"Buluta bağlanıyor…");\n    await ensureAnonymous();\n    // Önce bu telefondaki yerel kayıtları buluta gönder, sonra ortak veriyi çek.\n    const errors=await pushCloud();\n    await loadCloud();';
+ const connNew='async function connectAndSync(showAlert=false){\n  try{\n    setCloudStatus(false,"Buluta bağlanıyor…");\n    await ensureAnonymous();\n    await loadCloud();\n    const errors=await pushCloud();';
+ if(h.includes(connOld)) h=h.replace(connOld,connNew);
+ document.open();document.write(h);document.close();
+}catch(e){document.body.innerHTML='<pre style="white-space:pre-wrap;padding:20px">TEMESİST yüklenemedi: '+String(e)+'</pre>';}
+})();
+</script></body></html>
