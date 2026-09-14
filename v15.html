@@ -1,0 +1,35 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TEMESİST</title></head><body><div id="loading" style="font-family:Arial;padding:30px">TEMESİST yükleniyor...</div><script>
+(async()=>{
+  try{
+    const r=await fetch('https://raw.githubusercontent.com/Sametpekcan85/Sametpekcan85/main/index.html?fix=15');
+    if(!r.ok) throw new Error('Uygulama yüklenemedi: '+r.status);
+    let html=await r.text();
+    const patch=`<script>
+      (function(){
+        const w=document.getElementById('wipe');
+        if(!w) return;
+        w.onclick=async function(){
+          if(!confirm('TÜM üretim kayıtları tüm cihazlardan silinecek. Emin misin?')) return;
+          try{
+            if(typeof cloudClient!=='undefined' && cloudClient){
+              if(typeof ensureAnonymous==='function') await ensureAnonymous();
+              const res=await cloudClient.from('temesist_records').delete().neq('id','00000000-0000-0000-0000-000000000000');
+              if(res.error) throw res.error;
+            }
+            if(typeof db!=='undefined') db={records:[],products:(typeof defaultProducts!=='undefined'?defaultProducts:[]),orders:[]};
+            if(typeof saveDB==='function') saveDB();
+            if(typeof setupForm==='function') setupForm();
+            if(typeof renderHome==='function') renderHome();
+            alert('Tüm üretim kayıtları buluttan ve bu cihazdan silindi. Sayfa yenilense bile geri gelmeyecek.');
+          }catch(e){
+            console.error(e);
+            alert('Kayıtlar buluttan silinemedi. İnternet bağlantısını kontrol edip tekrar deneyin.');
+          }
+        };
+      })();
+    <\/script>`;
+    html=html.replace(/<\/body>/i,patch+'</body>');
+    document.open();document.write(html);document.close();
+  }catch(e){document.getElementById('loading').textContent='Uygulama açılamadı: '+e.message;}
+})();
+</script></body></html>
