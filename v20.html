@@ -1,0 +1,17 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TEMESİST</title></head><body><div style="font-family:Arial;padding:30px;text-align:center">TEMESİST yükleniyor…</div><script>
+(async()=>{try{
+const u='https://raw.githubusercontent.com/Sametpekcan85/Sametpekcan85/main/index.html';
+let h=await (await fetch(u,{cache:'no-store'})).text();
+const del=`window.deleteRecord=async id=>{\n if(!confirm("Bu üretim kaydını silmek istediğine emin misin?\\n\\nSadece bu kayıt silinecek.")) return;\n const rec=db.records.find(x=>String(x.id)===String(id)||String(x.cloudId)===String(id));\n if(!rec){alert("Kayıt bulunamadı.");return;}\n try{\n  if(cloudClient){\n   await ensureAnonymous();\n   const cloudId=rec.cloudId||rec.id;\n   if(cloudId){\n    const {error}=await cloudClient.from("temesist_records").delete().eq("id",cloudId);\n    if(error)throw error;\n   }\n  }\n  db.records=db.records.filter(x=>x!==rec);\n  if(typeof _localSaveDB==="function") _localSaveDB(); else localStorage.setItem("temesistDB",JSON.stringify(db));\n  renderRecords(document.getElementById("recordSearch")?.value||"");\n  renderHome();\n  if(typeof renderMachines==="function")renderMachines();\n  alert("Kayıt silindi. Diğer cihazlarda da görünmeyecek.");\n }catch(e){\n  console.error("TEMESİST tek kayıt silme hatası:",e);\n  alert("Kayıt silinemedi. İnternet bağlantısını kontrol edip tekrar deneyin.");\n }\n};`;
+const replacement=del;
+const re=/window\.deleteRecord\s*=\s*id\s*=>\s*\{[\s\S]*?\n\};/;
+if(re.test(h)) h=h.replace(re,replacement); else throw Error('Silme fonksiyonu bulunamadı');
+const mergeOld='const merge=(local,cloud,map)=>{const seen=new Set();const out=[];for(const x of cloud){seen.add(String(x.cloudId));out.push(x);}for(const x of local){if(!seen.has(String(x.cloudId)))out.push(x);}return out;};\n  db.records=merge(db.records,cloudRecords,localRecords);\n  db.products=merge(db.products,cloudProducts,localProducts);\n  db.orders=merge(db.orders,cloudOrders,localOrders);';
+const mergeNew='const mergeCloudAuthoritative=(local,cloud)=>{const pending=local.filter(x=>!x.cloudId);return [...cloud,...pending];};\n  db.records=mergeCloudAuthoritative(db.records,cloudRecords);\n  db.products=mergeCloudAuthoritative(db.products,cloudProducts);\n  db.orders=mergeCloudAuthoritative(db.orders,cloudOrders);';
+if(h.includes(mergeOld))h=h.replace(mergeOld,mergeNew);
+const connOld='// Önce bu telefondaki yerel kayıtları buluta gönder, sonra ortak veriyi çek.\n    const errors=await pushCloud();\n    await loadCloud();';
+const connNew='await loadCloud();\n    const errors=await pushCloud();';
+if(h.includes(connOld))h=h.replace(connOld,connNew);
+document.open();document.write(h);document.close();
+}catch(e){document.body.innerHTML='<pre style="white-space:pre-wrap;padding:20px">TEMESİST yüklenemedi: '+String(e)+'</pre>';}})();
+</script></body></html>
